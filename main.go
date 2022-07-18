@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	strings "strings"
 
 	"gopkg.in/yaml.v3"
@@ -23,8 +24,20 @@ func main() {
 		meta = append(meta, y.toMeta(conf))
 	}
 
-	log.Println(meta[0].path.fileName())
+	err := createDirIfNotExist(conf.outputDir)
+	check(err)
+
+	for _, m := range meta {
+		err := os.WriteFile(
+			conf.outputDir+"/"+m.path.fileName()+".md",
+			[]byte(strings.Join(m.comments, "\n\n")),
+			0666,
+		)
+		check(err)
+	}
 }
+
+var FileExtension = regexp.MustCompile(`\.[^.]+$`)
 
 type Path string
 
@@ -46,7 +59,8 @@ func (p Path) fileName() string {
 		name[nameLength-i-1] = tmp
 	}
 
-	return string(name)
+	// todo: fix
+	return FileExtension.ReplaceAllString(string(name), "")
 }
 
 type Conf struct {
@@ -112,6 +126,18 @@ func collectMeta(n *yaml.Node, comments *[]string, conf Conf) {
 	for _, node := range n.Content {
 		collectMeta(node, comments, conf)
 	}
+}
+
+func createDirIfNotExist(dir string) error {
+	_, err := os.ReadDir(dir)
+	if err != nil {
+		err := os.MkdirAll(dir, 0777)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+	}
+	return nil
 }
 
 func check(e error) {
