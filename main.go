@@ -53,7 +53,7 @@ func main() {
 
 func readYamls(path string, conf Conf) []Yaml {
 	yamls := make([]Yaml, 0)
-	filepath.Walk(path, func(p string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(path, func(p string, info fs.FileInfo, err error) error {
 		if !info.IsDir() && matchAnySuffix(p, conf.includeFileTypes) {
 			bytes, err := os.ReadFile(p)
 			check(err)
@@ -62,6 +62,7 @@ func readYamls(path string, conf Conf) []Yaml {
 		}
 		return nil
 	})
+	check(err)
 
 	return yamls
 }
@@ -78,17 +79,14 @@ func matchAnySuffix(path string, suffixes []string) bool {
 func collectMeta(n *yaml.Node, comments *[]string, conf Conf) {
 	if n == nil {
 		return
-	} else if strings.Contains(n.HeadComment, conf.metaMarker) {
-		*comments = append(*comments, n.HeadComment)
-		for _, node := range n.Content {
-			collectMeta(node, comments, conf)
-		}
-	} else {
-		for _, node := range n.Content {
-			collectMeta(node, comments, conf)
-		}
 	}
-	return
+	if strings.Contains(n.HeadComment, conf.metaMarker) {
+		*comments = append(*comments, n.HeadComment)
+	}
+
+	for _, node := range n.Content {
+		collectMeta(node, comments, conf)
+	}
 }
 
 func check(e error) {
