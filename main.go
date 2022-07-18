@@ -14,6 +14,7 @@ func main() {
 	conf := Conf{
 		includeFileTypes: []string{".yaml", ".yml"},
 		metaMarker:       "@doc-it",
+		outputDir:        "out",
 	}
 
 	yamls := readYamls("yamls", conf)
@@ -22,16 +23,40 @@ func main() {
 		meta = append(meta, y.toMeta(conf))
 	}
 
-	log.Println(meta)
+	log.Println(meta[0].path.fileName())
+}
+
+type Path string
+
+func (p Path) fileName() string {
+	l := len(p)
+	name := make([]byte, 0)
+
+	for i := l - 1; i > 0; i-- {
+		if p[i] == '/' {
+			break
+		}
+		name = append(name, p[i])
+	}
+
+	nameLength := len(name)
+	for i := 0; i < nameLength/2; i++ {
+		tmp := name[i]
+		name[i] = name[nameLength-i-1]
+		name[nameLength-i-1] = tmp
+	}
+
+	return string(name)
 }
 
 type Conf struct {
 	includeFileTypes []string
 	metaMarker       string
+	outputDir        string
 }
 
 type Yaml struct {
-	path    string
+	path    Path
 	content string
 }
 
@@ -47,7 +72,7 @@ func (ya Yaml) toMeta(conf Conf) Meta {
 }
 
 type Meta struct {
-	path     string
+	path     Path
 	comments []string
 }
 
@@ -58,7 +83,7 @@ func readYamls(path string, conf Conf) []Yaml {
 			bytes, err := os.ReadFile(p)
 			check(err)
 
-			yamls = append(yamls, Yaml{p, string(bytes)})
+			yamls = append(yamls, Yaml{Path(p), string(bytes)})
 		}
 		return nil
 	})
