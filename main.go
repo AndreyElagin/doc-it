@@ -10,6 +10,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+func main() {
+	conf := Conf{
+		includeFileTypes: []string{".yaml", ".yml"},
+		metaMarker:       "@doc-it",
+	}
+
+	yamls := readYamls("yamls", conf)
+	meta := make([]Meta, 0)
+	for _, y := range yamls {
+		meta = append(meta, y.toMeta(conf))
+	}
+
+	log.Println(meta)
+}
+
 type Conf struct {
 	includeFileTypes []string
 	metaMarker       string
@@ -34,21 +49,6 @@ func (ya Yaml) toMeta(conf Conf) Meta {
 type Meta struct {
 	path     string
 	comments []string
-}
-
-func main() {
-	conf := Conf{
-		includeFileTypes: []string{".yaml", ".yml"},
-		metaMarker:       "@doc-it",
-	}
-
-	yamls := readYamls("yamls", conf)
-	meta := make([]Meta, 0)
-	for _, y := range yamls {
-		meta = append(meta, y.toMeta(conf))
-	}
-
-	log.Println(meta)
 }
 
 func readYamls(path string, conf Conf) []Yaml {
