@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	strings "strings"
+	"strings"
 
 	"doc-it/pkg/config"
 	"doc-it/pkg/docit"
@@ -14,10 +14,10 @@ func main() {
 	conf := config.Conf{
 		IncludeFileTypes: []string{".yaml", ".yml"},
 		MetaMarker:       "@doc-it",
-		OutputDir:        "out",
+		OutputDir:        "test-output",
 	}
 
-	yamls := docit.ReadYamls("yamls", conf)
+	yamls := docit.ReadYamls("test-yamls", conf)
 	meta := make([]docit.Meta, 0)
 	for _, y := range yamls {
 		meta = append(meta, y.ToMeta(conf))
