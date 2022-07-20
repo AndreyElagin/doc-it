@@ -1,16 +1,12 @@
-# @doc-it
-# # Hello my friend
-# List of usefully things:
-# * first
-# * second
-# * third
+# Hello my friend
+List of usefully things:
+* first
+* second
+* third
 
-# @doc-it
-# Text text
-# [link](google.com)
+Text text
+[link](google.com)
 
-# @doc-it
-# Hello world
+Hello world
 
-# @doc-it
-# NO GOD NO
+NO GOD NO

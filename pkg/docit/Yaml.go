@@ -57,10 +57,42 @@ func collectMeta(n *yaml.Node, comments *[]string, conf config.Conf) {
 		return
 	}
 	if strings.Contains(n.HeadComment, conf.MetaMarker) {
-		*comments = append(*comments, n.HeadComment)
+		*comments = append(*comments, clearMetaComment(n.HeadComment))
 	}
 
 	for _, node := range n.Content {
 		collectMeta(node, comments, conf)
 	}
+}
+
+func clearMetaComment(comment string) string {
+	// First line in every meta comment is meta marker. We can delete it
+	out := make([]byte, 0)
+
+	dataStartPoint := 0
+	for i, ch := range comment {
+		if ch == '\n' {
+			if i+3 > len(comment) {
+				panic("empty meta section")
+			}
+			// skip linebreak, comment mark, and empty space
+			dataStartPoint = i + 3
+			break
+		}
+	}
+
+	for i := dataStartPoint; i < (len(comment) - 2); i++ {
+		if comment[i] == '\n' && comment[i+1] == '#' {
+			// Skip for linebreak, comment mark and empty space
+			i += 2
+			out = append(out, '\n')
+			continue
+		}
+		out = append(out, comment[i])
+	}
+
+	out = append(out, comment[len(comment)-2])
+	out = append(out, comment[len(comment)-1])
+
+	return string(out)
 }

@@ -1,10 +1,8 @@
-# @doc-it
-# # Hello my friend
-# List of usefully things:
-# * first
-# * second
-# * third
+# Hello my friend
+List of usefully things:
+* first
+* second
+* third
 
-# @doc-it
-# Text text
-# [link](google.com)
+Text text
+[link](google.com)

@@ -29,7 +29,7 @@ func main() {
 	for _, m := range meta {
 		err := os.WriteFile(
 			conf.OutputDir+"/"+m.Path.FileName()+".md",
-			[]byte(strings.Join(m.Comments, "\n\n")),
+			[]byte(strings.Join(m.Comments, "\n\n")+"\n"),
 			0666,
 		)
 		errorutils.Check(err)
