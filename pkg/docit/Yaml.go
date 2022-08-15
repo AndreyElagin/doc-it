@@ -16,15 +16,20 @@ type Yaml struct {
 	Content string
 }
 
+type PieceOfRef struct {
+	Comment         string
+	ObjectReference string
+}
+
 func (ya Yaml) ToMeta(conf config.Conf) Meta {
 	var n yaml.Node
 	err := yaml.Unmarshal([]byte(ya.Content), &n)
 	errorutils.Check(err)
 
-	comments := make([]string, 0)
-	collectMeta(&n, &comments, conf)
+	refPieces := make([]PieceOfRef, 0)
+	collectMeta(n.Content[0], &refPieces, "", conf)
 
-	return Meta{ya.Path, comments}
+	return Meta{ya.Path, refPieces}
 }
 
 func ReadYamls(path string, conf config.Conf) []Yaml {
@@ -52,16 +57,32 @@ func matchAnySuffix(path string, suffixes []string) bool {
 	return false
 }
 
-func collectMeta(n *yaml.Node, comments *[]string, conf config.Conf) {
+func collectMeta(n *yaml.Node, pieces *[]PieceOfRef, ref string, conf config.Conf) {
 	if n == nil {
 		return
 	}
-	if strings.Contains(n.HeadComment, conf.MetaMarker) {
-		*comments = append(*comments, clearMetaComment(n.HeadComment))
-	}
 
-	for _, node := range n.Content {
-		collectMeta(node, comments, conf)
+	for i := 0; i < len(n.Content); i += 2 {
+		key := n.Content[i]
+		var value *yaml.Node = nil
+		if i+1 < len(n.Content) {
+			value = n.Content[i+1]
+		}
+
+		updatedRef := ref + "." + key.Value
+
+		if strings.Contains(key.HeadComment, conf.MetaMarker) {
+			*pieces = append(*pieces, PieceOfRef{clearMetaComment(key.HeadComment), updatedRef})
+		}
+
+		collectMeta(value, pieces, updatedRef, conf)
+		//switch value.Kind {
+		//case yaml.ScalarNode:
+		//  updatedRef := updatedRef + "." + n.Value
+		//  continue
+		//case yaml.MappingNode:
+		//  collectMeta(n.Content[i], pieces, updatedRef, conf)
+		//}
 	}
 }
 

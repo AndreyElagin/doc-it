@@ -26,12 +26,20 @@ func main() {
 	err := fsutils.CreateDirIfNotExist(conf.OutputDir)
 	errorutils.Check(err)
 
+	sb := strings.Builder{}
+
 	for _, m := range meta {
+		for _, ref := range m.Comments {
+			sb.WriteString("Path:\n" + ref.ObjectReference + "\n")
+			sb.WriteString("Reference:\n" + ref.Comment + "\n\n")
+		}
+
 		err := os.WriteFile(
 			conf.OutputDir+"/"+m.Path.FileName()+".md",
-			[]byte(strings.Join(m.Comments, "\n\n")+"\n"),
+			[]byte(sb.String()),
 			0666,
 		)
+		sb.Reset()
 		errorutils.Check(err)
 	}
 }
