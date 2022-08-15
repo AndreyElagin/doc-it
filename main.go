@@ -30,8 +30,11 @@ func main() {
 
 	for _, m := range meta {
 		for _, ref := range m.Comments {
-			sb.WriteString("Path:\n" + ref.ObjectReference + "\n")
-			sb.WriteString("Reference:\n" + ref.Comment + "\n\n")
+			sb.WriteString("Reference:\n" + ref.Reference + "\n")
+			sb.WriteString("Path:\n" + ref.ObjectLink + "\n")
+			if ref.BlockContent != "" {
+				sb.WriteString("Block content:\n" + ref.BlockContent + "\n")
+			}
 		}
 
 		err := os.WriteFile(

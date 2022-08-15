@@ -17,8 +17,9 @@ type Yaml struct {
 }
 
 type PieceOfRef struct {
-	Comment         string
-	ObjectReference string
+	Reference    string
+	ObjectLink   string
+	BlockContent string
 }
 
 func (ya Yaml) ToMeta(conf config.Conf) Meta {
@@ -72,18 +73,37 @@ func collectMeta(n *yaml.Node, pieces *[]PieceOfRef, ref string, conf config.Con
 		updatedRef := ref + "." + key.Value
 
 		if strings.Contains(key.HeadComment, conf.MetaMarker) {
-			*pieces = append(*pieces, PieceOfRef{clearMetaComment(key.HeadComment), updatedRef})
+			pieces = fillPieceOfRef(value, pieces, key, updatedRef)
 		}
 
 		collectMeta(value, pieces, updatedRef, conf)
-		//switch value.Kind {
-		//case yaml.ScalarNode:
-		//  updatedRef := updatedRef + "." + n.Value
-		//  continue
-		//case yaml.MappingNode:
-		//  collectMeta(n.Content[i], pieces, updatedRef, conf)
-		//}
 	}
+}
+
+func fillPieceOfRef(value *yaml.Node, pieces *[]PieceOfRef, key *yaml.Node, updatedRef string) *[]PieceOfRef {
+	var blockContent string
+
+	switch value.Kind {
+	case yaml.ScalarNode:
+		blockContent = value.Value
+	case yaml.SequenceNode:
+		blockContent = ""
+		sb := strings.Builder{}
+		for _, seqNode := range value.Content {
+			sb.WriteString("- ")
+			sb.WriteString(seqNode.Value)
+			sb.WriteString("\n")
+			blockContent = sb.String()
+		}
+	case yaml.MappingNode:
+		blockContent = ""
+	}
+
+	*pieces = append(
+		*pieces,
+		PieceOfRef{clearMetaComment(key.HeadComment), updatedRef, blockContent},
+	)
+	return pieces
 }
 
 func clearMetaComment(comment string) string {
